@@ -7,7 +7,25 @@
     <title>Goose</title>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="mainWrap">
+        <div id="toolbar">
+            <button id="btChat" class="addBt" role="button">+ Chat</button>
+            <div id="previews"></div>
+        </div>
+        <div id="main">
+            <div id="mainInner">
+                <div id="apiConfig">
+                    <label for="apiUrl" style="margin-right:5px;">URL:</label>
+                    <input type="text" id="apiUrl" name="apiUrl" style="width:200px; margin-right:15px;">
+                    <label for="apiKey" style="margin-right:5px;">Key:</label>
+                    <input type="text" id="apiKey" name="apiKey" style="width:200px; margin-right:15px;">
+                    <label for="modelSelect" style="margin-right:5px;">Model:</label>
+                    <input type="text" id="modelSelect" name="modelSelect" style="width:150px;">
+                </div>
+                <div id="chatContainer"></div>
+            </div>
+        </div>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
