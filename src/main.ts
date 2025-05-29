@@ -56,6 +56,7 @@ function initApiConfigFields() {
 async function setup(){
     await DB.Init();
     addChat("");
+    console.log(await AI.GetModels());
 }
 
 function addChat(template: string){

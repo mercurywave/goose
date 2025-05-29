@@ -23,64 +23,52 @@ export class AIManager{
     }
 
     async CallApi(messages: AiMessage[], streamer: (reply: string) => void, cancel: AbortController): Promise<string> {
-        console.log(this.apiUrl);
-        let reply = "";
-
         try{
-            const url = new URL(`/v1/chat/completions`, this.apiUrl);
-            const apiKey = this.apiKey;
-            
-            const response = await fetch(url, {
+            let response = await fetch('/api/chat-stream', {
                 method: "POST",
                 headers: {
-                    "Authorization": `Bearer ${apiKey}`,
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    model: this.apiModel,
+                    apiUrl: this.apiUrl,
+                    apiKey: this.apiKey,
+                    apiModel: this.apiModel,
                     messages: messages,
-                    stream: true
                 }),
-                signal: cancel.signal
+                signal: cancel.signal,
             });
-
-            if (!response.ok || !response.body) {
-                throw new Error(`API request failed: ${response.status} ${response.statusText}`);
-            }
-
+            
+            if(!response.ok) { throw 'Error communicating with web server'; }
             const reader = response.body.getReader();
-            const decoder = new TextDecoder("utf-8");
-
+            const decoder = new TextDecoder();
+            let reply = "";
             while (true) {
-                console.log("...");
                 const { done, value } = await reader.read();
-                console.log(value);
-                if (done) break;
-
-                const chunk = decoder.decode(value, { stream: true });
-                // OpenAI streams data as lines starting with "data: "
-                for (const line of chunk.split("\n")) {
-                    const trimmed = line.trim();
-                    if (!trimmed || !trimmed.startsWith("data:")) continue;
-                    const data = trimmed.replace(/^data:\s*/, "");
-                    if (data === "[DONE]") break;
-
-                    try {
-                        const parsed = JSON.parse(data);
-                        const delta = parsed.choices?.[0]?.delta?.content;
-                        if (delta) {
-                            reply += delta;
-                            streamer(reply);
-                        }
-                    } catch (e) {
-                        // Ignore malformed JSON lines
-                    }
-                }
+                let formattedValue = decoder.decode(value);
+                if (done) break;    
+                reply += formattedValue;
+                streamer(reply);
             }
-        }
-        catch(e) {console.log(e);}
+            return reply;
+        } catch(e) {console.log(e);}  
+        return "";
+    }
 
-        return reply;
+    public async GetModels(): Promise<string[]> {
+        let response = await fetch('/api/models', {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                apiUrl: this.apiUrl,
+            }),
+        });
+        if(!response.ok || !response.body) {
+            throw `Error in model list retrieval: ${response.status} ${response.statusText}`;
+        }
+        const models = await response.json();
+        return models as string[];
     }
 }
 

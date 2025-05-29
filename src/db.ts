@@ -5,7 +5,7 @@ export namespace DB {
 
     export async function Init(): Promise<void> {
         let future = new Deferred();
-        let request = indexedDB.open("fb-chats", 1);
+        let request = indexedDB.open("goose-chats", 1);
 
         request.onupgradeneeded = () => {
             let db = request.result;
